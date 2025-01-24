@@ -575,6 +575,70 @@ assistant.tool_execution_callback = -> (tool_call_id, tool_name, method_name, to
 * `submit_tool_output`: Manually submit output to a tool call
 * `messages`: Returns a list of ongoing messages
 
+### Streaming and Chunk Processing
+
+When working with LLMs, responses are often streamed as chunks of text. The Assistant provides callbacks to handle these chunks and message boundaries:
+
+```ruby
+assistant = Langchain::Assistant.new(
+  llm: llm,
+  on_message_start: ->(chunk) { puts "Response started!" },
+  on_message_end: ->(chunk) { puts "Response completed!" },
+  on_chunk: ->(chunk) { print chunk.content }
+)
+```
+
+#### Available Callbacks
+
+- `on_message_start`: Called when a new message begins
+- `on_message_end`: Called when the message is complete
+- `on_chunk`: Called for each chunk of text between start and end
+
+Each callback receives a chunk object that provides:
+- `content`: The text content of the chunk
+- `start?`: Whether this chunk marks the start of a message
+- `end?`: Whether this chunk marks the end of a message
+- `tool?`: Whether this chunk contains a tool call
+- `function_names`: Any function names being called (for tool calls)
+- `function_arguments`: Arguments for the function calls
+
+#### Example: Real-time Message Updates
+
+```ruby
+class ChatHandler
+  def initialize
+    @current_content = ""
+
+    @assistant = Langchain::Assistant.new(
+      llm: llm,
+      on_message_start: method(:handle_start),
+      on_message_end: method(:handle_end),
+      on_chunk: method(:handle_chunk)
+    )
+  end
+
+  def handle_start(chunk)
+    @current_content = ""
+    create_message(content: "...", finished: false)
+  end
+
+  def handle_chunk(chunk)
+    return unless chunk.content
+    @current_content += chunk.content
+    update_message(content: @current_content)
+  end
+
+  def handle_end(chunk)
+    update_message(finished: true)
+  end
+end
+```
+
+This lets you:
+1. Show a loading state when the response starts
+2. Update the UI in real-time as content arrives
+3. Mark the message as complete when finished
+
 ### Built-in Tools 🛠️
 * `Langchain::Tool::Calculator`: Useful for evaluating math expressions. Requires `gem "eqn"`.
 * `Langchain::Tool::Database`: Connect your SQL database. Requires `gem "sequel"`.
