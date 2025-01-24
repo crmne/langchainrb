@@ -56,6 +56,14 @@ module Langchain
           def tool_role
             raise NotImplementedError, "Subclasses must implement tool_role"
           end
+
+          # Build a chunk wrapper for the raw chunk data
+          #
+          # @param chunk [Hash] The raw chunk data from the LLM
+          # @return [Chunks::Base] A chunk wrapper instance
+          def build_chunk(chunk)
+            raise NotImplementedError, "Subclasses must implement build_chunk"
+          end
         end
       end
     end

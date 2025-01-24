@@ -79,6 +79,10 @@ module Langchain
             Messages::AnthropicMessage::ROLES.include?("system")
           end
 
+          def build_chunk(chunk)
+            Chunks::AnthropicChunk.new(chunk)
+          end
+
           private
 
           def build_tool_choice(choice, parallel_tool_calls)

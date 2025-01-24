@@ -24,6 +24,7 @@ loader.inflector.inflect(
   "openai" => "OpenAI",
   "openai_response" => "OpenAIResponse",
   "openai_message" => "OpenAIMessage",
+  "openai_chunk" => "OpenAIChunk",
   "pdf" => "PDF"
 )
 

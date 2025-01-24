@@ -84,6 +84,10 @@ module Langchain
             Messages::OpenAIMessage::ROLES.include?("system")
           end
 
+          def build_chunk(chunk)
+            Chunks::OpenAIChunk.new(chunk)
+          end
+
           private
 
           def build_tool_choice(choice)

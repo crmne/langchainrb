@@ -25,7 +25,10 @@ module Langchain
     attr_accessor :tools,
       :add_message_callback,
       :tool_execution_callback,
-      :parallel_tool_calls
+      :parallel_tool_calls,
+      :on_message_start,
+      :on_message_end,
+      :on_chunk
 
     # Create a new assistant
     #
@@ -47,6 +50,9 @@ module Langchain
       # Callbacks
       add_message_callback: nil,
       tool_execution_callback: nil,
+      on_message_start: nil,
+      on_message_end: nil,
+      on_chunk: nil,
       &block
     )
       unless tools.is_a?(Array) && tools.all? { |tool| tool.class.singleton_class.included_modules.include?(Langchain::ToolDefinition) }
@@ -58,6 +64,10 @@ module Langchain
 
       @add_message_callback = add_message_callback if validate_callback!("add_message_callback", add_message_callback)
       @tool_execution_callback = tool_execution_callback if validate_callback!("tool_execution_callback", tool_execution_callback)
+
+      @on_message_start = on_message_start if validate_callback!("on_message_start", on_message_start)
+      @on_message_end = on_message_end if validate_callback!("on_message_end", on_message_end)
+      @on_chunk = on_chunk if validate_callback!("on_chunk", on_chunk)
 
       self.messages = messages
       @tools = tools
@@ -345,7 +355,25 @@ module Langchain
         tool_choice: tool_choice,
         parallel_tool_calls: parallel_tool_calls
       )
-      @llm.chat(**params, &@block)
+
+      chunk_processor = proc do |chunk|
+        process_chunk(chunk)
+        @block.call(chunk) if @block
+      end
+
+      @llm.chat(**params, &chunk_processor)
+    end
+
+    def process_chunk(chunk)
+      chunk_wrapper = @llm_adapter.build_chunk(chunk)
+
+      if chunk_wrapper.start?
+        @on_message_start&.call(chunk_wrapper)
+      elsif chunk_wrapper.end?
+        @on_message_end&.call(chunk_wrapper)
+      else
+        @on_chunk&.call(chunk_wrapper)
+      end
     end
 
     # Run the tools automatically
