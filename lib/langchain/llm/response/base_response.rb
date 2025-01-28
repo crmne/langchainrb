@@ -86,14 +86,27 @@ module Langchain
       end
 
       class ModelInfo
-        attr_reader :id, :created_at, :display_name, :provider, :metadata
+        attr_reader :id, :created_at, :display_name, :provider, :metadata,
+                    :context_window, :max_tokens,
+                    :supports_vision, :supports_functions, :supports_json_mode,
+                    :input_price_per_1k, :output_price_per_1k
 
-        def initialize(id:, created_at:, provider:, display_name: nil, metadata: {})
+        def initialize(id:, created_at:, provider:, display_name: nil, metadata: {},
+                      context_window: nil, max_tokens: nil,
+                      supports_vision: false, supports_functions: false, supports_json_mode: false,
+                      input_price_per_1k: nil, output_price_per_1k: nil)
           @id = id
           @created_at = created_at
           @display_name = display_name || id
           @provider = provider
           @metadata = metadata
+          @context_window = context_window
+          @max_tokens = max_tokens
+          @supports_vision = supports_vision
+          @supports_functions = supports_functions
+          @supports_json_mode = supports_json_mode
+          @input_price_per_1k = input_price_per_1k
+          @output_price_per_1k = output_price_per_1k
         end
       end
     end
